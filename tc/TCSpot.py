@@ -22,7 +22,7 @@ class TCSpot():
     '''A class of TC spots'''
     def __init__(self, m_type):
         # DB
-        #self.mysqlAccess   = MysqlAccess()     # mysql access
+        self.mysqlAccess   = MysqlAccess()     # mysql access
 
         # channel queue
         self.chan_queue = TCQ('channel','spot')
@@ -47,7 +47,10 @@ class TCSpot():
         try:
             # 主机器需要配置redis队列
             if self.m_type == 'm':
-                channel_list = self.channel_list
+                val = ('1',)
+                channel_list = self.mysqlAccess.selectChannel(val)
+                if not channel_list:
+                    channel_list = self.channel_list
                 if channel_list and len(channel_list) > 0:
                     channel_val_list = []
                     for c in channel_list:

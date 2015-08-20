@@ -34,6 +34,13 @@ class MysqlAccess():
         except Exception, e:
             print '# insert tc Ticket exception:', e
 
+    def selectChannel(self, args):
+        try:
+            sql = 'select channel_id, channel_url, channel_type from nd_c_mid_channel where status = 1 and channel_type = %s'
+            return self.tc_db.select(sql, args)
+        except Exception, e:
+            print '# select tc crawl channel exception:', e
+
 if __name__ == '__main__':
     pass
     #my = MysqlAccess()
