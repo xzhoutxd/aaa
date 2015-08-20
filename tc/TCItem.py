@@ -95,7 +95,11 @@ class Item():
                 if m:
                     self.item_discount = m.group(1)
                 else:
-                    self.item_discount = i_discount
+                    m = re.search(r'(\d+)', i_discount)
+                    if m:
+                        self.item_discount = m.group(1)
+                    else:
+                        self.item_discount = i_discount
 
             m = re.search(r'<div class="s-sr">\s+<span.+?>(.+?)</div>', page, flags=re.S)
             if m:
