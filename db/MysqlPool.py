@@ -58,5 +58,5 @@ class MysqlPool:
             Common.log('# MyDatabase executemany exception: %s %s' % (e, sql))
             Common.log(args_list)
 
-g_tcDbPool = MysqlPool(Environ.mysql_config['tc'])
+g_tcDbPool = MysqlPool(Environ.mysql_config['ly'])
 
