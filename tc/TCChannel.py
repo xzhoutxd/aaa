@@ -64,6 +64,20 @@ class Channel():
             m = re.search(r'<title>(.+?)</title>', self.channel_page, flags=re.S)
             if m:
                 self.channel_name = m.group(1)
+
+            keyword, pid, cid, cyid = '', 0, 0, 0
+            m = re.search(r'<span id="hdKeyWord">(.*?)</span>', self.channel_page, flags=re.S)
+            if m:
+                keyword = m.group(1)
+            m = re.search(r'<span id="hdPid">(.*?)</span>', self.channel_page, flags=re.S)
+            if m:
+                pid = int(m.group(1))
+            m = re.search(r'<span id="hdCid">(.*?)</span>', self.channel_page, flags=re.S)
+            if m:
+                cid = int(m.group(1))
+            m = re.search(r'<span id="hdCyid">(.*?)</span>', self.channel_page, flags=re.S)
+            if m:
+                cyid = int(m.group(1))
         
             i_p = 1
             i_page = 1
@@ -82,10 +96,10 @@ class Channel():
             if m:
                 m_page = int(m.group(1))
 
-            page_url = 'http://www.ly.com/scenery/SearchList.aspx?&action=getlist&page=%d&kw=&pid=22&cid=295&cyid=0&theme=0&grade=0&money=0&sort=0&paytype=0&ismem=0&istuan=0&isnow=0&spType=&isyiyuan=0&lbtypes=&IsNJL=0&classify=0'
+            page_url = 'http://www.ly.com/scenery/SearchList.aspx?&action=getlist&page=%d&kw=&pid=%d&cid=%d&cyid=%d&theme=0&grade=0&money=0&sort=0&paytype=0&ismem=0&istuan=0&isnow=0&spType=&isyiyuan=0&lbtypes=&IsNJL=0&classify=0'
             while i_page < m_page:
                 i_page += 1
-                p_url = page_url % i_page
+                p_url = page_url % (i_page, pid, cid, cyid)
                 Common.log(i_page)
                 page = self.retrycrawler.getData(p_url, self.channel_url)
                 i_p = self.get_items(page, i_p)
