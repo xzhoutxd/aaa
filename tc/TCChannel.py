@@ -42,6 +42,9 @@ class Channel():
         # channel items
         self.channel_items      = []
 
+        # channel list
+        self.channel_list       = []
+
     # 频道页初始化
     def init(self, channel_id, channel_url, channel_type, begin_time):
         self.channel_id = channel_id
@@ -131,6 +134,57 @@ class Channel():
                 i_p += 1
         return i_p
 
+    def channelList(self):
+        self.channelPage()
+        if self.channel_page:
+            city_list = self.moreCity(self.channel_page, 'city')
+            for city in city_list:
+                city_url, city_name, province_id, city_id, dcity_id = city 
+                if city_url:
+                    province_name, city_name = '', ''
+                    city_page = self.crawler.getData(city_url, self.channel_url)
+                    if city_page:
+                        m = re.search(r'<div class="search_screen_dl"><dl action="province">.+?<div class="right"><a href=".+?" class="current" tvalue="(\d+)" title="(.+?)">', city_page, flags=re.S)
+                        if m:
+                            province_id, province_name = m.group(1), m.group(2)
+                        m = re.search(r'<div class="search_screen_dl">.+?<dl action="city">.+?<div class="right"><a href=".+?" class="current" tvalue="(\d+)" title="(.+?)">', city_page, flags=re.S)
+                        if m:
+                            city_id, city_name = m.group(1), m.group(2)
+                    channel_list = self.moreCity(city_page, 'district')
+                    if channel_list and len(channel_list) > 0:
+                        for channel in channel_list:
+                            channel_url, channel_name, p_id, c_id, cy_id = channel
+                            self.channel_list.append((str(cy_id), channel_name, channel_url, str(self.channel_type), city_id, city_name, province_id, province_name))
+
+    def moreCity(self, page, action_key):
+        city_list = []
+        if page:
+            p_id, c_id, cy_id = 0, 0, 0
+            m = re.search(r'<span id="hdPid">(.*?)</span>', page, flags=re.S)
+            if m:
+                p_id = int(m.group(1))
+            m = re.search(r'<span id="hdCid">(.*?)</span>', page, flags=re.S)
+            if m:
+                c_id = int(m.group(1))
+            m = re.search(r'<span id="hdCyid">(.*?)</span>', page, flags=re.S)
+            if m:
+                cy_id = int(m.group(1))
+            
+            p_url = 'http://www.ly.com/scenery/scenerysearchlist_%d_%d__0_0_0_%d_0_0_0.html'
+            m = re.search(r'<div class="search_screen_box" id="searchScreenBox">.+?<dl action="%s".+?>.+?<dd>.+?<div class="right">(.+?)</div></dd>' % action_key, page, flags=re.S)
+            if m:
+                city_infos = m.group(1)
+                p = re.compile(r'<a.+?tvalue="(\d+)" title="(.+?)">', flags=re.S)
+                for city in p.finditer(city_infos):
+                    city_id, city_name = int(city.group(1)), city.group(2)
+                    if action_key == 'city':
+                        c_id = city_id
+                    elif action_key == 'district':
+                        cy_id = city_id
+                    city_url, city_name = p_url % (p_id, c_id, cy_id), city.group(2)
+                    city_list.append((city_url, city_name, p_id, c_id, cy_id))
+        return city_list
+
     def channelPage(self):
         if self.channel_url:
             data = self.crawler.getData(self.channel_url, Config.tc_home)
@@ -145,12 +199,19 @@ class Channel():
         self.init(channel_id, channel_url, channel_type, begin_time)
         self.config()
 
+    def antChannelList(self, val):
+        self.channel_url, self.channel_type = val
+        self.channelList()
 
 if __name__ == '__main__':
     Common.log(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     c = Channel()
-    val = (1, 'http://www.ly.com/scenery/scenerysearchlist_22_295__0_0_0_0_0_0_0.html', 1, Common.now())
-    c.antPage(val)
+    #val = (1, 'http://www.ly.com/scenery/scenerysearchlist_22_295__0_0_0_0_0_0_0.html', 1, Common.now())
+    #c.antPage(val)
+    val = ('http://www.ly.com/scenery/scenerysearchlist_22_0__0_0_0_0_0_0_0.html', 1)
+    c.antChannelList(val)
+    for val in c.channel_list:
+        Common.log(val)
     time.sleep(1)
     Common.log(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
